@@ -8,6 +8,12 @@ DISPLAY_SIZE = (1024, 512)
 pytweening.linear(1.0)
 pytweening.easeInQuad(1.0)
 pytweening.easeInOutSine(1.0)
+KANEKY = ['data/img/brawlers/Kaneky/Kagune1.png',
+          'data/img/brawlers/Kaneky/Kagune2.png',
+          'data/img/brawlers/Kaneky/Kagune3.png',
+          'data/img/brawlers/Kaneky/Kagune4.png',
+          'data/img/brawlers/Kaneky/Kagune3.png',
+          'data/img/brawlers/Kaneky/Kagune2.png']
 
 class SpriteSheet:
 
@@ -26,14 +32,14 @@ class SpriteSheet:
 
 
 class Player(pg.sprite.Sprite):
-
-    image = pg.image.load('data/img/mar.png')
+    image = pg.image.load('data/img/brawlers/Kaneky/Kagune1.png')
 
     def __init__(self, pos, *groups):
         super().__init__(*groups)
         self.image = Player.image
         self.rect = self.image.get_rect().move(pos)
         self.vel = (0, 0)
+        self.x = 1
 
     def step(self, dx, dy, level):
         self.rect = self.rect.move(dx * Tile.size, dy * Tile.size)
@@ -44,6 +50,11 @@ class Player(pg.sprite.Sprite):
 
     def movement(self):
         self.rect = self.rect.move(self.vel)
+        self.image = pg.image.load(KANEKY[self.x // 10])
+        if self.x < 50:
+            self.x += 1
+        else:
+            self.x -= 50
 
     def update(self, x, y):
         self.vel = (self.vel[0] + x, self.vel[1] + y)
@@ -144,7 +155,7 @@ if os.path.exists(f'data/levels/{lvl_name}.txt'):
     start_screen(screen, DISPLAY_SIZE)
     camera = Camera()
     running = True
-    dt = clock.tick(144)
+    dt = clock.tick(120)
 
     while running:
         screen.fill('black')
@@ -160,7 +171,6 @@ if os.path.exists(f'data/levels/{lvl_name}.txt'):
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_w:
                     player.update(0, round(-100 * dt / 1000))
-                    print(100 * dt)
                 if event.key == pg.K_s:
                     player.update(0, round(100 * dt / 1000))
                 if event.key == pg.K_a:
