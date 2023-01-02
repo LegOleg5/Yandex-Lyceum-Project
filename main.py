@@ -3,7 +3,6 @@ import os.path
 import pygame as pg
 import sys
 import pytweening
-import math
 
 DISPLAY_SIZE = (1024, 512)
 pytweening.linear(1.0)
