@@ -15,6 +15,17 @@ KANEKY = ['data/img/heroes/Kaneky/Kagune1.png',
           'data/img/heroes/Kaneky/Kagune3.png',
           'data/img/heroes/Kaneky/Kagune2.png']
 
+
+class Bullet(pg.sprite.Sprite):
+    # TODO
+    pass
+
+
+class Enemy:
+    # TODO
+    pass
+
+
 class SpriteSheet:
 
     def __init__(self, surface, width_frames, height_frames):
@@ -48,8 +59,11 @@ class Player(pg.sprite.Sprite):
                 self.rect = self.rect.move(-dx * Tile.size, -dy * Tile.size)
                 break
 
-    def movement(self):
+    def movement(self, level):
         self.rect = self.rect.move(self.vel)
+        for tile in pg.sprite.spritecollide(self, level.get_tiles(), False):
+            if tile.type == 'wall':
+                self.rect = self.rect.move(-self.vel[0], -self.vel[1])
         self.image = pg.image.load(KANEKY[self.x // 10])
         if self.x < 50:
             self.x += 1
@@ -100,6 +114,7 @@ class Level:
 
     def spawn(self):
         return self.spawn
+
     # def get_player(self):
     #     return next(iter(self.player_group))
 
@@ -170,23 +185,24 @@ if os.path.exists(f'data/levels/{lvl_name}.txt'):
 
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_w:
-                    player.update(0, -3)
+                    player.update(0, round(-100 * dt / 1000))
+                    print(100 * dt)
                 if event.key == pg.K_s:
-                    player.update(0, 3)
+                    player.update(0, round(100 * dt / 1000))
                 if event.key == pg.K_a:
-                    player.update(-3, 0)
+                    player.update(round(-100 * dt / 1000), 0)
                 if event.key == pg.K_d:
-                    player.update(3, 0)
+                    player.update(round(100 * dt / 1000), 0)
             if event.type == pg.KEYUP:
                 if event.key == pg.K_w:
-                    player.update(0, 3)
+                    player.update(0, round(100 * dt / 1000))
                 if event.key == pg.K_s:
-                    player.update(0, -3)
+                    player.update(0, round(-100 * dt / 1000))
                 if event.key == pg.K_a:
-                    player.update(3, 0)
+                    player.update(round(100 * dt / 1000), 0)
                 if event.key == pg.K_d:
-                    player.update(-3, 0)
-        player.movement()
+                    player.update(round(-100 * dt / 1000), 0)
+        player.movement(level)
 
         level.draw(screen)
         player_group.draw(screen)
