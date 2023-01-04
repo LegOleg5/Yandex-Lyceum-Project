@@ -4,16 +4,16 @@ import pygame as pg
 import sys
 import pytweening
 
-DISPLAY_SIZE = (1024, 512)
+DISPLAY_SIZE = (640, 640)
 pytweening.linear(1.0)
 pytweening.easeInQuad(1.0)
 pytweening.easeInOutSine(1.0)
-KANEKY = ['data/img/brawlers/Kaneky/Kagune1.png',
-          'data/img/brawlers/Kaneky/Kagune2.png',
-          'data/img/brawlers/Kaneky/Kagune3.png',
-          'data/img/brawlers/Kaneky/Kagune4.png',
-          'data/img/brawlers/Kaneky/Kagune3.png',
-          'data/img/brawlers/Kaneky/Kagune2.png']
+KANEKY = ['data/img/heroes/Kaneky/Kagune1.png',
+          'data/img/heroes/Kaneky/Kagune2.png',
+          'data/img/heroes/Kaneky/Kagune3.png',
+          'data/img/heroes/Kaneky/Kagune4.png',
+          'data/img/heroes/Kaneky/Kagune3.png',
+          'data/img/heroes/Kaneky/Kagune2.png']
 
 class SpriteSheet:
 
@@ -32,7 +32,7 @@ class SpriteSheet:
 
 
 class Player(pg.sprite.Sprite):
-    image = pg.image.load('data/img/brawlers/Kaneky/Kagune1.png')
+    image = pg.image.load('data/img/heroes/Kaneky/Kagune1.png')
 
     def __init__(self, pos, *groups):
         super().__init__(*groups)
@@ -155,7 +155,7 @@ if os.path.exists(f'data/levels/{lvl_name}.txt'):
     start_screen(screen, DISPLAY_SIZE)
     camera = Camera()
     running = True
-    dt = clock.tick(120)
+    dt = clock.tick(144)
 
     while running:
         screen.fill('black')
@@ -170,22 +170,22 @@ if os.path.exists(f'data/levels/{lvl_name}.txt'):
 
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_w:
-                    player.update(0, round(-100 * dt / 1000))
+                    player.update(0, -3)
                 if event.key == pg.K_s:
-                    player.update(0, round(100 * dt / 1000))
+                    player.update(0, 3)
                 if event.key == pg.K_a:
-                    player.update(round(-100 * dt / 1000), 0)
+                    player.update(-3, 0)
                 if event.key == pg.K_d:
-                    player.update(round(100 * dt / 1000), 0)
+                    player.update(3, 0)
             if event.type == pg.KEYUP:
                 if event.key == pg.K_w:
-                    player.update(0, round(100 * dt / 1000))
+                    player.update(0, 3)
                 if event.key == pg.K_s:
-                    player.update(0, round(-100 * dt / 1000))
+                    player.update(0, -3)
                 if event.key == pg.K_a:
-                    player.update(round(100 * dt / 1000), 0)
+                    player.update(3, 0)
                 if event.key == pg.K_d:
-                    player.update(round(-100 * dt / 1000), 0)
+                    player.update(-3, 0)
         player.movement()
 
         level.draw(screen)
