@@ -1,4 +1,5 @@
 import os.path
+import random
 
 import pygame as pg
 import sys
@@ -8,6 +9,21 @@ DISPLAY_SIZE = (640, 640)
 pytweening.linear(1.0)
 pytweening.easeInQuad(1.0)
 pytweening.easeInOutSine(1.0)
+WOODEN_FLOORS = ['data/img/floors/wooden_floor1.png',
+                 'data/img/floors/wooden_floor2.png',
+                 'data/img/floors/wooden_floor3.png',
+                 'data/img/floors/wooden_floor4.png']
+
+STONE_FLOORS = ['data/img/floors/stone_floor1.png',
+                'data/img/floors/stone_floor2.png',
+                'data/img/floors/stone_floor3.png',
+                'data/img/floors/stone_floor4.png']
+
+COBBLE_FLOORS = ['data/img/floors/cobble_floor1.png',
+                'data/img/floors/cobble_floor2.png',
+                'data/img/floors/cobble_floor3.png',
+                'data/img/floors/cobble_floor4.png']
+
 KANEKY = ['data/img/heroes/Kaneky/Kagune1.png',
           'data/img/heroes/Kaneky/Kagune2.png',
           'data/img/heroes/Kaneky/Kagune3.png',
@@ -75,15 +91,19 @@ class Player(pg.sprite.Sprite):
 
 
 class Tile(pg.sprite.Sprite):
-
     size = 64
     images = {
         'wall': pg.image.load('data/img/walls/cross_wall.png'),
-        'empty': pg.image.load('data/img/floors/wooden_floor4.png')
+        'empty1': pg.image.load('data/img/floors/wooden_floor4.png'),
+        'empty2': pg.image.load('data/img/floors/stone_floor4.png'),
+        'empty3': pg.image.load('data/img/floors/cobble_floor4.png')
     }
 
     def __init__(self, tile_type, tile_pos, *groups):
         super().__init__(*groups)
+        Tile.images['empty1'] = pg.image.load(WOODEN_FLOORS[random.randint(0, 3)])
+        Tile.images['empty2'] = pg.image.load(STONE_FLOORS[random.randint(0, 3)])
+        Tile.images['empty3'] = pg.image.load(COBBLE_FLOORS[random.randint(0, 3)])
         self.image = Tile.images[tile_type]
         self.rect = self.image.get_rect().move(tile_pos[0] * Tile.size,
                                                tile_pos[1] * Tile.size)
@@ -101,11 +121,15 @@ class Level:
                 line = line.strip()
                 for x, sym in enumerate(line):
                     if sym == '.':
-                        Tile('empty', (x, y), self.tile_group)
+                        Tile('empty2', (x, y), self.tile_group)
+                    if sym == ',':
+                        Tile('empty3', (x, y), self.tile_group)
+                    if sym == '!':
+                        Tile('empty1', (x, y), self.tile_group)
                     if sym == '#':
                         Tile('wall', (x, y), self.tile_group)
                     if sym == '@':
-                        Tile('empty', (x, y), self.tile_group)
+                        Tile('empty1', (x, y), self.tile_group)
                         self.spawn = (x * Tile.size, y * Tile.size)
                         # player = Player((x * Tile.size, y * Tile.size), self.player_group)
 

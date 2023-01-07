@@ -1,5 +1,7 @@
 import random
 
+floors = ['.', ',', '!']
+
 
 def hallway_1(room):
     for i in range(len(room)):
@@ -22,8 +24,8 @@ def hallway_2(room):
             new_room[9] = '#'
         if new_room[12] == 'e':
             new_room[12] = '#'
-        new_room[10] = '.'
-        new_room[11] = '.'
+        new_room[10] = ','
+        new_room[11] = ','
         room[i] = ''.join(new_room)
     return room
 
@@ -35,7 +37,7 @@ def hallway_3(room, corner):
             if i == 10 or i == 11:
                 for j in range(len(new_room)):
                     if j > 9:
-                        new_room[j] = '.'
+                        new_room[j] = '!'
             if i == 9 or i == 12:
                 for j in range(len(new_room)):
                     if j > 9:
@@ -46,8 +48,8 @@ def hallway_3(room, corner):
                     new_room[9] = '#'
                 if new_room[12] == 'e':
                     new_room[12] = '#'
-                new_room[10] = '.'
-                new_room[11] = '.'
+                new_room[10] = '!'
+                new_room[11] = '!'
             room[i] = ''.join(new_room)
     if corner == 2:
         for i in range(len(room)):
@@ -55,7 +57,7 @@ def hallway_3(room, corner):
             if i == 10 or i == 11:
                 for j in range(len(new_room)):
                     if j < 12:
-                        new_room[j] = '.'
+                        new_room[j] = '!'
             if i == 9 or i == 12:
                 for j in range(len(new_room)):
                     if j < 12:
@@ -66,8 +68,8 @@ def hallway_3(room, corner):
                     new_room[9] = '#'
                 if new_room[12] == 'e':
                     new_room[12] = '#'
-                new_room[10] = '.'
-                new_room[11] = '.'
+                new_room[10] = '!'
+                new_room[11] = '!'
             room[i] = ''.join(new_room)
     if corner == 3:
         for i in range(len(room)):
@@ -75,7 +77,7 @@ def hallway_3(room, corner):
             if i == 10 or i == 11:
                 for j in range(len(new_room)):
                     if j > 9:
-                        new_room[j] = '.'
+                        new_room[j] = '!'
             if i == 9 or i == 12:
                 for j in range(len(new_room)):
                     if j > 9:
@@ -86,8 +88,8 @@ def hallway_3(room, corner):
                     new_room[9] = '#'
                 if new_room[12] == 'e':
                     new_room[12] = '#'
-                new_room[10] = '.'
-                new_room[11] = '.'
+                new_room[10] = '!'
+                new_room[11] = '!'
             room[i] = ''.join(new_room)
     if corner == 4:
         for i in range(len(room)):
@@ -95,7 +97,7 @@ def hallway_3(room, corner):
             if i == 10 or i == 11:
                 for j in range(len(new_room)):
                     if j < 12:
-                        new_room[j] = '.'
+                        new_room[j] = '!'
             if i == 9 or i == 12:
                 for j in range(len(new_room)):
                     if j < 12:
@@ -106,14 +108,20 @@ def hallway_3(room, corner):
                     new_room[9] = '#'
                 if new_room[12] == 'e':
                     new_room[12] = '#'
-                new_room[10] = '.'
-                new_room[11] = '.'
+                new_room[10] = '!'
+                new_room[11] = '!'
             room[i] = ''.join(new_room)
     return room
 
 
 all_rooms = []
 for _ in range(12):
+    if _ == 1 or _ == 2 or _ == 9 or _ == 10:
+        fl = floors[0]
+    elif _ == 0 or _ == 3 or _ == 8 or _ == 11:
+        fl = floors[2]
+    else:
+        fl = floors[1]
     room = []
     x = random.randint(10, 20)
     y = random.randint(10, 20)
@@ -150,97 +158,97 @@ for _ in range(12):
                     if _ != 6:
                         new_room += '#'
                     else:
-                        new_room += '.'
+                        new_room += fl
                 elif j == 22 - e:
                     if _ != 5:
                         new_room += '#'
                     else:
-                        new_room += '.'
+                        new_room += fl
                 elif j < e or j > 22 - e:
                     new_room += 'e'
                 else:
-                    new_room += '.'
+                    new_room += fl
             room[i] = new_room
     for i in range(5):
         building = random.randint(0, 4)
         build = (random.randint(e + 2, 22 - e - 2), random.randint(e2 + 2, 22 - e2 - 2))
         if building == 0:
             new_room = [x for x in room[build[0]]]
-            if new_room[build[1]] == '.':
+            if new_room[build[1]] == fl:
                 new_room[build[1]] = '#'
-            if new_room[build[1] + 1] == '.':
+            if new_room[build[1] + 1] == fl:
                 new_room[build[1] + 1] = '#'
             room[build[0]] = ''.join(new_room)
 
             new_room = [x for x in room[build[0] + 1]]
-            if new_room[build[1]] == '.':
+            if new_room[build[1]] == fl:
                 new_room[build[1]] = '#'
             room[build[0] + 1] = ''.join(new_room)
 
         if building == 1:
             new_room = [x for x in room[build[0]]]
-            if new_room[build[1]] == '.':
+            if new_room[build[1]] == fl:
                 new_room[build[1]] = '#'
-            if new_room[build[1] + 1] == '.':
+            if new_room[build[1] + 1] == fl:
                 new_room[build[1] + 1] = '#'
             room[build[0]] = ''.join(new_room)
 
             new_room = [x for x in room[build[0] + 1]]
-            if new_room[build[1] + 1] == '.':
+            if new_room[build[1] + 1] == fl:
                 new_room[build[1] + 1] = '#'
             room[build[0] + 1] = ''.join(new_room)
 
         if building == 2:
             new_room = [x for x in room[build[0]]]
-            if new_room[build[1]] == '.':
+            if new_room[build[1]] == fl:
                 new_room[build[1]] = '#'
-            if new_room[build[1] + 1] == '.':
+            if new_room[build[1] + 1] == fl:
                 new_room[build[1] + 1] = '#'
             room[build[0]] = ''.join(new_room)
 
             new_room = [x for x in room[build[0] + 1]]
-            if new_room[build[1]] == '.':
+            if new_room[build[1]] == fl:
                 new_room[build[1]] = '#'
-            if new_room[build[1] + 1] == '.':
+            if new_room[build[1] + 1] == fl:
                 new_room[build[1] + 1] = '#'
             room[build[0] + 1] = ''.join(new_room)
 
         if building == 3:
             new_room = [x for x in room[build[0]]]
-            if new_room[build[1]] == '.':
+            if new_room[build[1]] == fl:
                 new_room[build[1]] = '#'
-            if new_room[build[1] + 1] == '.':
+            if new_room[build[1] + 1] == fl:
                 new_room[build[1] + 1] = '#'
-            if new_room[build[1] + 2] == '.':
+            if new_room[build[1] + 2] == fl:
                 new_room[build[1] + 2] = '#'
             room[build[0]] = ''.join(new_room)
 
             new_room = [x for x in room[build[0] + 1]]
-            if new_room[build[1]] == '.':
+            if new_room[build[1]] == fl:
                 new_room[build[1]] = '#'
-            if new_room[build[1] + 1] == '.':
+            if new_room[build[1] + 1] == fl:
                 new_room[build[1] + 1] = '#'
             room[build[0] + 1] = ''.join(new_room)
 
         if building == 4:
             new_room = [x for x in room[build[0]]]
-            if new_room[build[1]] == '.':
+            if new_room[build[1]] == fl:
                 new_room[build[1]] = '#'
-            if new_room[build[1] + 1] == '.':
+            if new_room[build[1] + 1] == fl:
                 new_room[build[1] + 1] = '#'
-            if new_room[build[1] + 2] == '.':
+            if new_room[build[1] + 2] == fl:
                 new_room[build[1] + 2] = '#'
             room[build[0]] = ''.join(new_room)
 
             new_room = [x for x in room[build[0] + 1]]
-            if new_room[build[1]] == '.':
+            if new_room[build[1]] == fl:
                 new_room[build[1]] = '#'
-            if new_room[build[1] + 1] == '.':
+            if new_room[build[1] + 1] == fl:
                 new_room[build[1] + 1] = '#'
             room[build[0] + 1] = ''.join(new_room)
 
             new_room = [x for x in room[build[0] + 2]]
-            if new_room[build[1]] == '.':
+            if new_room[build[1]] == fl:
                 new_room[build[1]] = '#'
             room[build[0] + 2] = ''.join(new_room)
     all_rooms.append(room)
