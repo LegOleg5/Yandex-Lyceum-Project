@@ -52,9 +52,6 @@ class Enemy(pg.sprite.Sprite):
             # TODO
             self.image = pg.image.load('data/img/state_morphling.png')
             self.hp = 40
-        elif type == 'axe':
-            # TODO
-            self.hp = 100
         elif type == 'jugger':
             # TODO
             self.hp = 70
@@ -65,15 +62,6 @@ class Enemy(pg.sprite.Sprite):
         # TODO
         if self.hp <= 0:
             self.kill()
-
-
-class Player(pg.sprite.Sprite):
-    KANEKY = ['data/img/heroes/Kaneky/Kagune1.png',
-              'data/img/heroes/Kaneky/Kagune2.png',
-              'data/img/heroes/Kaneky/Kagune3.png',
-              'data/img/heroes/Kaneky/Kagune4.png',
-              'data/img/heroes/Kaneky/Kagune3.png',
-              'data/img/heroes/Kaneky/Kagune2.png']
 
 
 class SpriteSheet:
@@ -93,7 +81,12 @@ class SpriteSheet:
 
 
 class Player(pg.sprite.Sprite):
-    image = pg.image.load('data/img/heroes/Kaneky/Kagune1.png')
+    KANEKY = ['data/img/heroes/Kaneky/Kagune1.png',
+              'data/img/heroes/Kaneky/Kagune2.png',
+              'data/img/heroes/Kaneky/Kagune3.png',
+              'data/img/heroes/Kaneky/Kagune4.png',
+              'data/img/heroes/Kaneky/Kagune3.png',
+              'data/img/heroes/Kaneky/Kagune2.png']
 
     def __init__(self, pos, *groups):
         super().__init__(*groups)
@@ -159,7 +152,6 @@ class Level:
 
     def __init__(self, lvl_path):
         self.tile_group = pg.sprite.Group()
-        # self.player_group = pg.sprite.Group()
         self.spawn = (0, 0)
         with open(lvl_path, mode='r') as level_file:
             for y, line in enumerate(level_file):
@@ -206,9 +198,33 @@ def terminate():
     sys.exit()
 
 
-def start_screen(surface, size):
-    fon = pg.transform.scale(pg.image.load('data/img/fon.jpg'), size)
-    screen.blit(fon, (0, 0))
+def main_menu(surface, size):
+    screen.blit(pg.image.load('data/img/Menu/Menu2.png'), (0, 0))
+
+    class Button(pg.sprite.Sprite):
+        change_char_img = pg.image.load('data/img/Menu/ButtonChange.png')
+        start_game_img = pg.image.load('data/img/Menu/ButtonStart.png')
+
+        def __init__(self, pos, type, *groups):
+            super().__init__(*groups)
+            self.type = type
+            if self.type == 'start':
+                self.image = Button.start_game_img
+            elif self.type == 'change':
+                self.image = Button.change_char_img
+            self.rect = self.image.get_rect().move(pos)
+
+        def update(self, pos):
+            if self.rect.collidepoint(pos):
+                if self.type == 'start':
+                    terminate()
+                else:
+                    pass
+
+
+    buttons_group = pg.sprite.Group()
+    Button((215, 310), 'change', buttons_group)
+    Button((215, 435), 'start', buttons_group)
 
     while True:
         for event in pg.event.get():
@@ -219,6 +235,7 @@ def start_screen(surface, size):
                 return
         pg.display.flip()
         clock.tick(144)
+        buttons_group.draw(screen)
 
 
 lvl_name = input()
@@ -232,7 +249,7 @@ if os.path.exists(f'data/levels/{lvl_name}.txt'):
     level = Level(f'data/levels/{lvl_name}.txt')
     player = Player(level.spawn, player_group)
     bullets_group = pg.sprite.Group()
-    start_screen(screen, DISPLAY_SIZE)
+    main_menu(screen, DISPLAY_SIZE)
     camera = Camera()
     running = True
 
