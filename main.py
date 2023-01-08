@@ -20,9 +20,9 @@ STONE_FLOORS = ['data/img/floors/stone_floor1.png',
                 'data/img/floors/stone_floor4.png']
 
 COBBLE_FLOORS = ['data/img/floors/cobble_floor1.png',
-                'data/img/floors/cobble_floor2.png',
-                'data/img/floors/cobble_floor3.png',
-                'data/img/floors/cobble_floor4.png']
+                 'data/img/floors/cobble_floor2.png',
+                 'data/img/floors/cobble_floor3.png',
+                 'data/img/floors/cobble_floor4.png']
 
 KANEKY = ['data/img/heroes/Kaneky/Kagune1.png',
           'data/img/heroes/Kaneky/Kagune2.png',
@@ -30,6 +30,18 @@ KANEKY = ['data/img/heroes/Kaneky/Kagune1.png',
           'data/img/heroes/Kaneky/Kagune4.png',
           'data/img/heroes/Kaneky/Kagune3.png',
           'data/img/heroes/Kaneky/Kagune2.png']
+
+MORPHLING = ['data/img/heroes/Morphling/Morf1.png',
+             'data/img/heroes/Morphling/Morf2.png',
+             'data/img/heroes/Morphling/Morf3.png',
+             'data/img/heroes/Morphling/Morf4.png']
+
+SF = ['data/img/heroes/Sf/SF1.png',
+      'data/img/heroes/Sf/SF2.png',
+      'data/img/heroes/Sf/SF3.png',
+      'data/img/heroes/Sf/SF4.png',
+      'data/img/heroes/Sf/SF3.png',
+      'data/img/heroes/Sf/SF2.png']
 
 
 class Bullet(pg.sprite.Sprite):
@@ -209,23 +221,23 @@ if os.path.exists(f'data/levels/{lvl_name}.txt'):
 
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_w:
-                    player.update(0, round(-100 * dt / 1000))
+                    player.update(0, round(-500 * dt / 1000))
                     print(100 * dt)
                 if event.key == pg.K_s:
-                    player.update(0, round(100 * dt / 1000))
+                    player.update(0, round(500 * dt / 1000))
                 if event.key == pg.K_a:
-                    player.update(round(-100 * dt / 1000), 0)
+                    player.update(round(-500 * dt / 1000), 0)
                 if event.key == pg.K_d:
-                    player.update(round(100 * dt / 1000), 0)
+                    player.update(round(500 * dt / 1000), 0)
             if event.type == pg.KEYUP:
                 if event.key == pg.K_w:
-                    player.update(0, round(100 * dt / 1000))
+                    player.update(0, round(500 * dt / 1000))
                 if event.key == pg.K_s:
-                    player.update(0, round(-100 * dt / 1000))
+                    player.update(0, round(-500 * dt / 1000))
                 if event.key == pg.K_a:
-                    player.update(round(100 * dt / 1000), 0)
+                    player.update(round(500 * dt / 1000), 0)
                 if event.key == pg.K_d:
-                    player.update(round(-100 * dt / 1000), 0)
+                    player.update(round(-500 * dt / 1000), 0)
         player.movement(level)
 
         level.draw(screen)

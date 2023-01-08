@@ -114,6 +114,22 @@ def hallway_3(room, corner):
     return room
 
 
+def hallway_to_door(room):
+    for i in range(len(room)):
+        new_room = [x for x in room[i]]
+        if i == 10 or i == 11:
+            for j in range(len(new_room)):
+                if j < 12:
+                    new_room[j] = ','
+        if i == 9 or i == 12:
+            for j in range(len(new_room)):
+                if j < 12:
+                    if new_room[j] == 'e':
+                        new_room[j] = '#'
+        room[i] = ''.join(new_room)
+    return room
+
+
 all_rooms = []
 for _ in range(12):
     if _ == 1 or _ == 2 or _ == 9 or _ == 10:
@@ -258,6 +274,7 @@ all_rooms[9] = hallway_1(all_rooms[9])
 all_rooms[10] = hallway_1(all_rooms[10])
 all_rooms[4] = hallway_2(all_rooms[4])
 all_rooms[7] = hallway_2(all_rooms[7])
+all_rooms[7] = hallway_to_door(all_rooms[7])
 all_rooms[0] = hallway_3(all_rooms[0], 1)
 all_rooms[3] = hallway_3(all_rooms[3], 2)
 all_rooms[8] = hallway_3(all_rooms[8], 3)
