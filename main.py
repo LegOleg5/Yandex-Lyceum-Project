@@ -21,9 +21,15 @@ class Bullet(pg.sprite.Sprite):
         self.image = pg.image.load('data/img/mar.png')
         self.rect = self.image.get_rect().move(self.pos)
         self.damage = 10
-        self.vel = (0, 0)
+        self.vel = (64, 64)
+        self.time_passed = 0
+
+    # def calc_vel(self):
+    #     self.movement = ((self.target[0] - self.start_pos[0]) + (self.target[1] - self.start_pos[1])) / (((self.target[0] - self.start_pos[0]) + (self.target[1] - self.start_pos[1])) / 128)
+
 
     def update(self, dt):
+        self.time_passed += dt
         for tile in pg.sprite.spritecollide(self, level.get_tiles(), False):
             if tile.type == 'wall':
                 self.kill()
@@ -50,18 +56,28 @@ class Enemy(pg.sprite.Sprite):
         super().__init__(*groups)
         if type == 'morph':
             # TODO
-            self.image = pg.image.load('data/img/state_morphling.png')
+            self.image = pg.image.load(Enemy.MORPHLING[0])
             self.hp = 40
         elif type == 'jugger':
             # TODO
             self.hp = 70
+        self.type = type
+        self.pos = pos
         self.rect = self.image.get_rect().move(pos)
         self.vel = (0, 0)
+        self.frame = 0
 
     def update(self, dt):
         # TODO
         if self.hp <= 0:
             self.kill()
+
+    def movement(self):
+        self.image = pg.image.load(Enemy.MORPHLING[self.frame // 10])
+        if self.frame < 40:
+            self.frame += 1
+        else:
+            self.frame -= 40
 
 
 class SpriteSheet:
@@ -221,17 +237,16 @@ def main_menu(surface, size):
                 else:
                     pass
 
-
     buttons_group = pg.sprite.Group()
-    Button((215, 310), 'change', buttons_group)
-    Button((215, 435), 'start', buttons_group)
+    change = Button((215, 310), 'change', buttons_group)
+    start = Button((215, 435), 'start', buttons_group)
 
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 terminate()
-            elif event.type == pg.KEYDOWN or \
-                    event.type == pg.MOUSEBUTTONDOWN:
+            elif event.type == pg.MOUSEBUTTONDOWN:
+                buttons_group.update(event.pos)
                 return
         pg.display.flip()
         clock.tick(144)
