@@ -1,6 +1,6 @@
 import os.path
 import random
-
+import math
 import pygame as pg
 import sys
 import pytweening
@@ -21,22 +21,22 @@ class Bullet(pg.sprite.Sprite):
         self.image = pg.image.load('data/img/mar.png')
         self.rect = self.image.get_rect().move(self.pos)
         self.damage = 10
-        self.vel = (64, 64)
+        self.vel = self.calc_vel()
         self.time_passed = 0
 
-    # def calc_vel(self):
-    #     self.movement = ((self.target[0] - self.start_pos[0]) + (self.target[1] - self.start_pos[1])) / (((self.target[0] - self.start_pos[0]) + (self.target[1] - self.start_pos[1])) / 128)
-
+    def calc_vel(self):
+        d = (self.target[0] - self.start_pos[0], self.target[1] - self.start_pos[1])
+        len_d = math.sqrt(d[0] ** 2 + d[1] ** 2)
+        dn = (d[0] / len_d, d[1] / len_d)
+        return dn[0] * 128 * 10, dn[1] * 128 * 10
 
     def update(self, dt):
         self.time_passed += dt
         for tile in pg.sprite.spritecollide(self, level.get_tiles(), False):
             if tile.type == 'wall':
                 self.kill()
-        if self.vel == (0, 0):
-            self.vel = ((self.target[0] - self.start_pos[0]) / (500 * (dt / 1000)), (self.target[1] - self.start_pos[1]) / (500 * (dt / 1000)))
-        self.pos = (self.pos[0] + self.vel[0], self.pos[0] + self.vel[1])
-        self.rect.move(self.pos)
+        self.pos = (self.rect.x + self.vel[0] * dt, self.rect.y + self.vel[1] * dt)
+        self.rect.x, self.rect.y = self.pos
 
 
 class Enemy(pg.sprite.Sprite):
@@ -119,11 +119,11 @@ class Player(pg.sprite.Sprite):
                 self.rect = self.rect.move(-self.vel[0], -self.vel[1])
 
         # animation
-        self.image = pg.image.load(Player.KANEKY[self.frame // 10])
-        if self.frame < 50:
+        self.image = pg.image.load(Player.KANEKY[self.frame // 5])
+        if self.frame < 25:
             self.frame += 1
         else:
-            self.frame -= 50
+            self.frame -= 25
 
     def update_vel(self, x, y):
         self.vel = (self.vel[0] + x, self.vel[1] + y)
@@ -199,6 +199,7 @@ class Camera:
     def __init__(self):
         self.dx = 0
         self.dy = 0
+        self.pos =(0, 0)
 
     def apply(self, obj):
         obj.rect.x += self.dx
@@ -207,6 +208,7 @@ class Camera:
     def update(self, target):
         self.dx = -(target.rect.x + target.rect.w // 2 - DISPLAY_SIZE[0] // 2)
         self.dy = -(target.rect.y + target.rect.h // 2 - DISPLAY_SIZE[1] // 2)
+        self.pos = (self.pos[0] - self.dx, self.pos[1] - self.dy)
 
 
 def terminate():
@@ -233,7 +235,7 @@ def main_menu(surface, size):
         def update(self, pos):
             if self.rect.collidepoint(pos):
                 if self.type == 'start':
-                    terminate()
+                    return
                 else:
                     pass
 
@@ -269,7 +271,7 @@ if os.path.exists(f'data/levels/{lvl_name}.txt'):
     running = True
 
     while running:
-        dt = clock.tick(144)
+        dt = clock.tick(144) / 1000
         screen.fill('black')
         for sprite in level.tile_group:
             camera.apply(sprite)
@@ -284,31 +286,36 @@ if os.path.exists(f'data/levels/{lvl_name}.txt'):
                 running = False
 
             if event.type == pg.MOUSEBUTTONDOWN:
-                Bullet((DISPLAY_SIZE[0] / 2, DISPLAY_SIZE[1] / 2), event.pos, bullets_group)
+                print((player.rect.centerx + camera.pos[0], player.rect.centery + camera.pos[1]),
+                       (event.pos[0] + camera.pos[0], event.pos[1] + camera.pos[1]))
+                b = Bullet((player.rect.centerx + camera.pos[0], player.rect.centery + camera.pos[1]),
+                       (event.pos[0] + camera.pos[0], event.pos[1] + camera.pos[1]),
+                       bullets_group)
+                b.rect.x -= camera.pos[0]
+                b.rect.y -= camera.pos[1]
 
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_w:
-                    player.update_vel(0, round(-300 * dt / 1000))
+                    player.update_vel(0, -1 * 7)
                 if event.key == pg.K_s:
-                    player.update_vel(0, round(300 * dt / 1000))
+                    player.update_vel(0, 7)
                 if event.key == pg.K_a:
-                    player.update_vel(round(-300 * dt / 1000), 0)
+                    player.update_vel(-7, 0)
                 if event.key == pg.K_d:
-                    player.update_vel(round(300 * dt / 1000), 0)
+                    player.update_vel(7, 0)
             if event.type == pg.KEYUP:
                 if event.key == pg.K_w:
-                    player.update_vel(0, round(300 * dt / 1000))
+                    player.update_vel(0, 7)
                 if event.key == pg.K_s:
-                    player.update_vel(0, round(-300 * dt / 1000))
+                    player.update_vel(0, -7)
                 if event.key == pg.K_a:
-                    player.update_vel(round(300 * dt / 1000), 0)
+                    player.update_vel(7, 0)
                 if event.key == pg.K_d:
-                    player.update_vel(round(-300 * dt / 1000), 0)
+                    player.update_vel(-7, 0)
 
         player.movement(level)
         level.draw(screen)
         player_group.draw(screen)
-        bullets_group.update(dt)
         bullets_group.draw(screen)
 
         pg.display.flip()
