@@ -13,16 +13,17 @@ pytweening.easeInOutSine(1.0)
 
 class Bullet(pg.sprite.Sprite):
 
-    def __init__(self, start_pos, target, *groups):
+    def __init__(self, start_pos, target, type, *groups):
         super().__init__(*groups)
+        self.type = type
+        if self.type == 'player':
+            self.image = pg.image.load('data/img/mar.png')
+            self.damage = 15
         self.start_pos = start_pos
         self.pos = start_pos
         self.target = target
-        self.image = pg.image.load('data/img/mar.png')
         self.rect = self.image.get_rect().move(self.pos)
-        self.damage = 10
         self.vel = self.calc_vel()
-        self.time_passed = 0
 
     def calc_vel(self):
         d = (self.target[0] - self.start_pos[0], self.target[1] - self.start_pos[1])
@@ -31,36 +32,42 @@ class Bullet(pg.sprite.Sprite):
         return dn[0] * 128 * 10, dn[1] * 128 * 10
 
     def update(self, dt):
-        self.time_passed += dt
         for tile in pg.sprite.spritecollide(self, level.get_tiles(), False):
             if tile.type == 'wall':
                 self.kill()
+        if self.type == 'player':
+            for enemy in pg.sprite.spritecollide(self, enemies_group, False):
+                enemy.get_damage(self.damage)
+                self.kill()
+
         self.pos = (self.rect.x + self.vel[0] * dt, self.rect.y + self.vel[1] * dt)
         self.rect.x, self.rect.y = self.pos
 
 
 class Enemy(pg.sprite.Sprite):
-    MORPHLING = ['data/img/heroes/Morphling/Morf1.png',
-                 'data/img/heroes/Morphling/Morf2.png',
-                 'data/img/heroes/Morphling/Morf3.png',
-                 'data/img/heroes/Morphling/Morf4.png']
+    MORPHLING = [pg.image.load('data/img/heroes/Morphling/Morf1.png'),
+                 pg.image.load('data/img/heroes/Morphling/Morf2.png'),
+                 pg.image.load('data/img/heroes/Morphling/Morf3.png'),
+                 pg.image.load('data/img/heroes/Morphling/Morf4.png')]
 
-    SF = ['data/img/heroes/Sf/SF1.png',
-          'data/img/heroes/Sf/SF2.png',
-          'data/img/heroes/Sf/SF3.png',
-          'data/img/heroes/Sf/SF4.png',
-          'data/img/heroes/Sf/SF3.png',
-          'data/img/heroes/Sf/SF2.png']
+    SF = [pg.image.load('data/img/heroes/Sf/SF1.png'),
+          pg.image.load('data/img/heroes/Sf/SF2.png'),
+          pg.image.load('data/img/heroes/Sf/SF3.png'),
+          pg.image.load('data/img/heroes/Sf/SF4.png'),
+          pg.image.load('data/img/heroes/Sf/SF3.png'),
+          pg.image.load('data/img/heroes/Sf/SF2.png')]
 
     def __init__(self, pos, type, *groups):
         super().__init__(*groups)
         if type == 'morph':
             # TODO
-            self.image = pg.image.load(Enemy.MORPHLING[0])
+            self.image = Enemy.MORPHLING[0]
             self.hp = 40
+            self.damage = 20
         elif type == 'jugger':
             # TODO
             self.hp = 70
+            self.damage = 30
         self.type = type
         self.pos = pos
         self.rect = self.image.get_rect().move(pos)
@@ -72,12 +79,23 @@ class Enemy(pg.sprite.Sprite):
         if self.hp <= 0:
             self.kill()
 
+        # animation
+        if self.type == 'morph':
+            self.image = Enemy.MORPHLING[self.frame // 10]
+        if self.frame < 30:
+            self.frame += 1
+        else:
+            self.frame -= 30
+
     def movement(self):
-        self.image = pg.image.load(Enemy.MORPHLING[self.frame // 10])
+        self.image = Enemy.MORPHLING[self.frame // 10]
         if self.frame < 40:
             self.frame += 1
         else:
             self.frame -= 40
+
+    def get_damage(self, dmg):
+        self.hp -= dmg
 
 
 class SpriteSheet:
@@ -128,6 +146,13 @@ class Player(pg.sprite.Sprite):
     def update_vel(self, x, y):
         self.vel = (self.vel[0] + x, self.vel[1] + y)
 
+    def shoot(self, target):
+        b = Bullet((self.rect.centerx + camera.pos[0], self.rect.centery + camera.pos[1]),
+                   (target[0] + camera.pos[0], target[1] + camera.pos[1]), 'player',
+                   bullets_group)
+        b.rect.x -= camera.pos[0]
+        b.rect.y -= camera.pos[1]
+
 
 class Tile(pg.sprite.Sprite):
     WOODEN_FLOORS = ['data/img/floors/wooden_floor1.png',
@@ -169,21 +194,28 @@ class Level:
     def __init__(self, lvl_path):
         self.tile_group = pg.sprite.Group()
         self.spawn = (0, 0)
+        self.enemies = []
         with open(lvl_path, mode='r') as level_file:
             for y, line in enumerate(level_file):
                 line = line.strip()
-                for x, sym in enumerate(line):
-                    if sym == '.':
+                for x, symbol in enumerate(line):
+                    if symbol == '.':
                         Tile('floor2', (x, y), self.tile_group)
-                    if sym == ',':
+                    if symbol == ',':
                         Tile('floor3', (x, y), self.tile_group)
-                    if sym == '!':
+                    if symbol == '!':
                         Tile('floor1', (x, y), self.tile_group)
-                    if sym == '#':
+                    if symbol == '#':
                         Tile('wall', (x, y), self.tile_group)
-                    if sym == '@':
+                    if symbol == '@':
                         Tile('floor1', (x, y), self.tile_group)
                         self.spawn = (x * Tile.size, y * Tile.size)
+                    if symbol == '+':
+                        Tile('floor1', (x, y), self.tile_group)
+                        self.enemies.append(((x * Tile.size, y * Tile.size), 'morph'))
+                    if symbol == '-':
+                        Tile('floor1', (x, y), self.tile_group)
+                        self.enemies.append(((x * Tile.size, y * Tile.size), 'jugger'))
 
     def get_tiles(self):
         return self.tile_group
@@ -266,18 +298,23 @@ if os.path.exists(f'data/levels/{lvl_name}.txt'):
     level = Level(f'data/levels/{lvl_name}.txt')
     player = Player(level.spawn, player_group)
     bullets_group = pg.sprite.Group()
+    enemies_group = pg.sprite.Group()
     main_menu(screen, DISPLAY_SIZE)
     camera = Camera()
+    if level.enemies:
+        for enemy_pos in level.enemies:
+            Enemy(*enemy_pos, enemies_group)
     running = True
 
     while running:
         dt = clock.tick(144) / 1000
         screen.fill('black')
-        for sprite in level.tile_group:
-            camera.apply(sprite)
+        for tile in level.tile_group:
+            camera.apply(tile)
         for bullet in bullets_group:
-            bullet.update(dt)
             camera.apply(bullet)
+        for enemy in enemies_group:
+            camera.apply(enemy)
         camera.apply(player)
         camera.update(player)
 
@@ -286,13 +323,9 @@ if os.path.exists(f'data/levels/{lvl_name}.txt'):
                 running = False
 
             if event.type == pg.MOUSEBUTTONDOWN:
-                print((player.rect.centerx + camera.pos[0], player.rect.centery + camera.pos[1]),
-                       (event.pos[0] + camera.pos[0], event.pos[1] + camera.pos[1]))
-                b = Bullet((player.rect.centerx + camera.pos[0], player.rect.centery + camera.pos[1]),
-                       (event.pos[0] + camera.pos[0], event.pos[1] + camera.pos[1]),
-                       bullets_group)
-                b.rect.x -= camera.pos[0]
-                b.rect.y -= camera.pos[1]
+                # print((player.rect.centerx + camera.pos[0], player.rect.centery + camera.pos[1]),
+                #        (event.pos[0] + camera.pos[0], event.pos[1] + camera.pos[1]))
+                player.shoot(event.pos)
 
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_w:
@@ -314,9 +347,12 @@ if os.path.exists(f'data/levels/{lvl_name}.txt'):
                     player.update_vel(-7, 0)
 
         player.movement(level)
+        bullets_group.update(dt)
+        enemies_group.update(dt)
         level.draw(screen)
         player_group.draw(screen)
         bullets_group.draw(screen)
+        enemies_group.draw(screen)
 
         pg.display.flip()
     pg.quit()
