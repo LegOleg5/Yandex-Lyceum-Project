@@ -37,7 +37,10 @@ def hallway_3(room, corner):
             if i == 10 or i == 11:
                 for j in range(len(new_room)):
                     if j > 9:
-                        new_room[j] = '!'
+                        if j == 10 and i == 10:
+                            new_room[j] = '@'
+                        else:
+                            new_room[j] = '!'
             if i == 9 or i == 12:
                 for j in range(len(new_room)):
                     if j > 9:
@@ -126,6 +129,38 @@ def hallway_to_door(room):
                 if j < 12:
                     if new_room[j] == 'e':
                         new_room[j] = '#'
+        room[i] = ''.join(new_room)
+    return room
+
+
+def enemies_spawn(room, sym):
+    first_enemy = [random.randint(0, 400), random.randint(0, 400), random.randint(0, 400), random.randint(0, 400),
+                    random.randint(0, 400), random.randint(0, 400), random.randint(0, 400), random.randint(0, 400),
+                    random.randint(0, 400),
+                    random.randint(0, 400)]
+    second_enemy = [random.randint(0, 400), random.randint(0, 400), random.randint(0, 400), random.randint(0, 400),
+                    random.randint(0, 400), random.randint(0, 400), random.randint(0, 400), random.randint(0, 400),
+                    random.randint(0, 400),
+                    random.randint(0, 400)]
+    for i in range(len(room)):
+        new_room = [x for x in room[i]]
+        for j in range(len(room)):
+            for el in first_enemy:
+                if el == i * j:
+                    if room[i][j] == '#':
+                        pass
+                    elif room[i][j] == 'e':
+                        pass
+                    else:
+                        new_room[j] = sym
+            for el in second_enemy:
+                if el == i * j:
+                    if room[i][j] == '#':
+                        pass
+                    elif room[i][j] == 'e':
+                        pass
+                    else:
+                        new_room[j] = sym
         room[i] = ''.join(new_room)
     return room
 
@@ -279,6 +314,15 @@ all_rooms[0] = hallway_3(all_rooms[0], 1)
 all_rooms[3] = hallway_3(all_rooms[3], 2)
 all_rooms[8] = hallway_3(all_rooms[8], 3)
 all_rooms[11] = hallway_3(all_rooms[11], 4)
+for i in range(len(all_rooms)):
+    if i == 5 or i == 6:
+        pass
+    elif i == 1 or i == 2 or i == 9 or i == 10:
+        all_rooms[i] = enemies_spawn(all_rooms[i], '=')
+    elif i == 0 or i == 3 or i == 8 or i == 11:
+        all_rooms[i] = enemies_spawn(all_rooms[i], '+')
+    else:
+        all_rooms[i] = enemies_spawn(all_rooms[i], 'f')
 for i in range(22):
     print(all_rooms[0][i], all_rooms[1][i], all_rooms[2][i], all_rooms[3][i], sep='')
 for i in range(22):

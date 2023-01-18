@@ -45,17 +45,20 @@ class Bullet(pg.sprite.Sprite):
 
 
 class Enemy(pg.sprite.Sprite):
-    MORPHLING = [pg.image.load('data/img/heroes/Morphling/Morf1.png'),
-                 pg.image.load('data/img/heroes/Morphling/Morf2.png'),
-                 pg.image.load('data/img/heroes/Morphling/Morf3.png'),
-                 pg.image.load('data/img/heroes/Morphling/Morf4.png')]
+    MORPHLING = [pg.image.load('data/img/enemies/Morphling/Morf1.png'),
+                 pg.image.load('data/img/enemies/Morphling/Morf2.png'),
+                 pg.image.load('data/img/enemies/Morphling/Morf3.png'),
+                 pg.image.load('data/img/enemies/Morphling/Morf4.png')]
 
-    SF = [pg.image.load('data/img/heroes/Sf/SF1.png'),
-          pg.image.load('data/img/heroes/Sf/SF2.png'),
-          pg.image.load('data/img/heroes/Sf/SF3.png'),
-          pg.image.load('data/img/heroes/Sf/SF4.png'),
-          pg.image.load('data/img/heroes/Sf/SF3.png'),
-          pg.image.load('data/img/heroes/Sf/SF2.png')]
+    SF = [pg.image.load('data/img/enemies/Sf/SF1.png'),
+          pg.image.load('data/img/enemies/Sf/SF2.png'),
+          pg.image.load('data/img/enemies/Sf/SF3.png'),
+          pg.image.load('data/img/enemies/Sf/SF4.png'),
+          pg.image.load('data/img/enemies/Sf/SF3.png'),
+          pg.image.load('data/img/enemies/Sf/SF2.png')]
+
+    JUGGERNAUT = [pg.image.load('data/img/enemies\Juggernaut/Jugger1.png'),
+                  pg.image.load('data/img/enemies\Juggernaut/Jugger2.png')]
 
     def __init__(self, pos, type, *groups):
         super().__init__(*groups)
@@ -66,6 +69,7 @@ class Enemy(pg.sprite.Sprite):
             self.damage = 20
         elif type == 'jugger':
             # TODO
+            self.image = Enemy.JUGGERNAUT[0]
             self.hp = 70
             self.damage = 30
         self.type = type
@@ -82,10 +86,16 @@ class Enemy(pg.sprite.Sprite):
         # animation
         if self.type == 'morph':
             self.image = Enemy.MORPHLING[self.frame // 10]
-        if self.frame < 30:
-            self.frame += 1
-        else:
-            self.frame -= 30
+            if self.frame < 30:
+                self.frame += 1
+            else:
+                self.frame -= 30
+        if self.type == 'jugger':
+            self.image = Enemy.JUGGERNAUT[self.frame // 10]
+            if self.frame < 10:
+                self.frame += 1
+            else:
+                self.frame -= 10
 
     def movement(self):
         self.image = Enemy.MORPHLING[self.frame // 10]
@@ -212,6 +222,12 @@ class Level:
                         self.spawn = (x * Tile.size, y * Tile.size)
                     if symbol == '+':
                         Tile('floor1', (x, y), self.tile_group)
+                        self.enemies.append(((x * Tile.size, y * Tile.size), 'morph'))
+                    if symbol == '=':
+                        Tile('floor2', (x, y), self.tile_group)
+                        self.enemies.append(((x * Tile.size, y * Tile.size), 'morph'))
+                    if symbol == 'f':
+                        Tile('floor3', (x, y), self.tile_group)
                         self.enemies.append(((x * Tile.size, y * Tile.size), 'morph'))
                     if symbol == '-':
                         Tile('floor1', (x, y), self.tile_group)
