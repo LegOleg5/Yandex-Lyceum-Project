@@ -17,7 +17,7 @@ class Bullet(pg.sprite.Sprite):
         super().__init__(*groups)
         self.type = type
         if self.type == 'player':
-            self.image = pg.image.load('data/img/mar.png')
+            self.image = pg.image.load('data/img/bullet.png')
             self.damage = 15
         self.start_pos = start_pos
         self.pos = start_pos
@@ -92,10 +92,10 @@ class Enemy(pg.sprite.Sprite):
                 self.frame -= 30
         if self.type == 'jugger':
             self.image = Enemy.JUGGERNAUT[self.frame // 10]
-            if self.frame < 10:
+            if self.frame < 19:
                 self.frame += 1
             else:
-                self.frame -= 10
+                self.frame -= 19
 
     def movement(self):
         self.image = Enemy.MORPHLING[self.frame // 10]
