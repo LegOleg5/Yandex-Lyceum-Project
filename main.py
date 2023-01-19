@@ -9,6 +9,7 @@ DISPLAY_SIZE = (1240, 720)
 pytweening.linear(1.0)
 pytweening.easeInQuad(1.0)
 pytweening.easeInOutSine(1.0)
+print((math.atan(12 / 5) * 180) / math.pi)
 
 
 class Bullet(pg.sprite.Sprite):
@@ -17,7 +18,7 @@ class Bullet(pg.sprite.Sprite):
         super().__init__(*groups)
         self.type = type
         if self.type == 'player':
-            self.image = pg.image.load('data/img/bullet.png')
+            self.image = pg.image.load('data/img/attack1_kaneky.png')
             self.damage = 15
         self.start_pos = start_pos
         self.pos = start_pos
@@ -78,15 +79,27 @@ class Enemy(pg.sprite.Sprite):
         self.vel = (0, 0)
         self.frame = 0
 
+    def calc_vel(self, target):
+        pass
+
+    def find_path_to_player(self):
+        d = (player.pos[0] - self.pos[0], player.pos[1] - self.pos[1])
+        len_d = math.sqrt(d[0] ** 2 + d[1] ** 2)
+        dn = (d[0] / len_d, d[1] / len_d)
+        self.vel = dn[0] * 128 * 10, dn[1] * 128 * 10
+
     def update(self, dt):
         # TODO
         if self.hp <= 0:
             self.kill()
 
+        self.find_path_to_player()
+        self.movement()
+
         # animation
         if self.type == 'morph':
             self.image = Enemy.MORPHLING[self.frame // 10]
-            if self.frame < 30:
+            if self.frame < 39:
                 self.frame += 1
             else:
                 self.frame -= 30
@@ -98,11 +111,12 @@ class Enemy(pg.sprite.Sprite):
                 self.frame -= 19
 
     def movement(self):
-        self.image = Enemy.MORPHLING[self.frame // 10]
-        if self.frame < 40:
-            self.frame += 1
-        else:
-            self.frame -= 40
+        for tile in pg.sprite.spritecollide(self, level.get_tiles(), False):
+            if tile.type == 'wall':
+                self.rect = self.rect.move(-self.vel[0], -self.vel[1])
+
+        self.pos = (self.pos[0] + self.vel[0], self.pos[1] + self.vel[1])
+        self.rect.move(self.pos)
 
     def get_damage(self, dmg):
         self.hp -= dmg
@@ -140,7 +154,7 @@ class Player(pg.sprite.Sprite):
         self.vel = (0, 0)
         self.frame = 1
 
-    def movement(self, level):
+    def movement(self):
         self.rect = self.rect.move(self.vel)
         for tile in pg.sprite.spritecollide(self, level.get_tiles(), False):
             if tile.type == 'wall':
@@ -304,73 +318,71 @@ def main_menu(surface, size):
 
 
 lvl_name = input()
-if os.path.exists(f'data/levels/{lvl_name}.txt'):
 
-    pg.init()
-    pg.display.set_caption('Перемещение героя. Камера')
-    screen = pg.display.set_mode(DISPLAY_SIZE)
-    clock = pg.time.Clock()
-    player_group = pg.sprite.Group()
-    level = Level(f'data/levels/{lvl_name}.txt')
-    player = Player(level.spawn, player_group)
-    bullets_group = pg.sprite.Group()
-    enemies_group = pg.sprite.Group()
-    main_menu(screen, DISPLAY_SIZE)
-    camera = Camera()
-    if level.enemies:
-        for enemy_pos in level.enemies:
-            Enemy(*enemy_pos, enemies_group)
-    running = True
+pg.init()
+pg.display.set_caption('Перемещение героя. Камера')
+screen = pg.display.set_mode(DISPLAY_SIZE)
+clock = pg.time.Clock()
+player_group = pg.sprite.Group()
+level = Level(f'data/levels/{lvl_name}.txt')
+player = Player(level.spawn, player_group)
+bullets_group = pg.sprite.Group()
+enemies_group = pg.sprite.Group()
+main_menu(screen, DISPLAY_SIZE)
+camera = Camera()
+if level.enemies:
+    for enemy_pos in level.enemies:
+        Enemy(*enemy_pos, enemies_group)
+running = True
 
-    while running:
-        dt = clock.tick(144) / 1000
-        screen.fill('black')
-        for tile in level.tile_group:
-            camera.apply(tile)
-        for bullet in bullets_group:
-            camera.apply(bullet)
-        for enemy in enemies_group:
-            camera.apply(enemy)
-        camera.apply(player)
-        camera.update(player)
+while running:
+    dt = clock.tick(144) / 1000
+    screen.fill('black')
+    for tile in level.tile_group:
+        camera.apply(tile)
+    for bullet in bullets_group:
+        camera.apply(bullet)
+    for enemy in enemies_group:
+        enemy.movement()
+        camera.apply(enemy)
+    camera.apply(player)
+    camera.update(player)
 
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                running = False
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            running = False
 
-            if event.type == pg.MOUSEBUTTONDOWN:
-                # print((player.rect.centerx + camera.pos[0], player.rect.centery + camera.pos[1]),
-                #        (event.pos[0] + camera.pos[0], event.pos[1] + camera.pos[1]))
-                player.shoot(event.pos)
+        if event.type == pg.MOUSEBUTTONDOWN:
+            # print((player.rect.centerx + camera.pos[0], player.rect.centery + camera.pos[1]),
+            #        (event.pos[0] + camera.pos[0], event.pos[1] + camera.pos[1]))
+            player.shoot(event.pos)
 
-            if event.type == pg.KEYDOWN:
-                if event.key == pg.K_w:
-                    player.update_vel(0, -1 * 7)
-                if event.key == pg.K_s:
-                    player.update_vel(0, 7)
-                if event.key == pg.K_a:
-                    player.update_vel(-7, 0)
-                if event.key == pg.K_d:
-                    player.update_vel(7, 0)
-            if event.type == pg.KEYUP:
-                if event.key == pg.K_w:
-                    player.update_vel(0, 7)
-                if event.key == pg.K_s:
-                    player.update_vel(0, -7)
-                if event.key == pg.K_a:
-                    player.update_vel(7, 0)
-                if event.key == pg.K_d:
-                    player.update_vel(-7, 0)
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_w:
+                player.update_vel(0, -1 * 7)
+            if event.key == pg.K_s:
+                player.update_vel(0, 7)
+            if event.key == pg.K_a:
+                player.update_vel(-7, 0)
+            if event.key == pg.K_d:
+                player.update_vel(7, 0)
+        if event.type == pg.KEYUP:
+            if event.key == pg.K_w:
+                player.update_vel(0, 7)
+            if event.key == pg.K_s:
+                player.update_vel(0, -7)
+            if event.key == pg.K_a:
+                player.update_vel(7, 0)
+            if event.key == pg.K_d:
+                player.update_vel(-7, 0)
 
-        player.movement(level)
-        bullets_group.update(dt)
-        enemies_group.update(dt)
-        level.draw(screen)
-        player_group.draw(screen)
-        bullets_group.draw(screen)
-        enemies_group.draw(screen)
+    player.movement()
+    bullets_group.update(dt)
+    enemies_group.update(dt)
+    level.draw(screen)
+    player_group.draw(screen)
+    bullets_group.draw(screen)
+    enemies_group.draw(screen)
 
-        pg.display.flip()
-    pg.quit()
-else:
-    print('Уровня с таким именем не существует')
+    pg.display.flip()
+pg.quit()
