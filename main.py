@@ -1,4 +1,3 @@
-import os.path
 import random
 import math
 import pygame as pg
@@ -20,11 +19,15 @@ class Bullet(pg.sprite.Sprite):
         if self.type == 'player':
             self.image = pg.image.load('data/img/attack1_kaneky.png')
             self.damage = 15
+        if self.type == 'morph':
+            self.image = pg.image.load('data/img/attack1_morfling.png')
+            self.damage = 20
         self.start_pos = start_pos
         self.pos = start_pos
         self.target = target
         self.rect = self.image.get_rect().move(self.pos)
         self.vel = self.calc_vel()
+        self.image = pg.transform.rotate(self.image, (-math.atan(self.target[0] - self.pos[0] / self.target[1] - self.pos[1]) * 180) / math.pi)
 
     def calc_vel(self):
         d = (self.target[0] - self.start_pos[0], self.target[1] - self.start_pos[1])
@@ -39,6 +42,10 @@ class Bullet(pg.sprite.Sprite):
         if self.type == 'player':
             for enemy in pg.sprite.spritecollide(self, enemies_group, False):
                 enemy.get_damage(self.damage)
+                self.kill()
+        elif self.type == 'morph':
+            if pg.sprite.spritecollide(self, player_group, False):
+                player.get_damage(self.damage)
                 self.kill()
 
         self.pos = (self.rect.x + self.vel[0] * dt, self.rect.y + self.vel[1] * dt)
@@ -58,8 +65,10 @@ class Enemy(pg.sprite.Sprite):
           pg.image.load('data/img/enemies/Sf/SF3.png'),
           pg.image.load('data/img/enemies/Sf/SF2.png')]
 
-    JUGGERNAUT = [pg.image.load('data/img/enemies\Juggernaut/Jugger1.png'),
-                  pg.image.load('data/img/enemies\Juggernaut/Jugger2.png')]
+    BS = [pg.image.load('data/img/enemies/blood_seeker/Blood_Seeker1.png'),
+          pg.image.load('data/img/enemies/blood_seeker/Blood_Seeker2.png'),
+          pg.image.load('data/img/enemies/blood_seeker/Blood_Seeker3.png'),
+          pg.image.load('data/img/enemies/blood_seeker/Blood_Seeker4.png')]
 
     def __init__(self, pos, type, *groups):
         super().__init__(*groups)
@@ -68,9 +77,9 @@ class Enemy(pg.sprite.Sprite):
             self.image = Enemy.MORPHLING[0]
             self.hp = 40
             self.damage = 20
-        elif type == 'jugger':
+        elif type == 'blood_seeker':
             # TODO
-            self.image = Enemy.JUGGERNAUT[0]
+            self.image = Enemy.BS[0]
             self.hp = 70
             self.damage = 30
         self.type = type
@@ -91,10 +100,9 @@ class Enemy(pg.sprite.Sprite):
     def update(self, dt):
         # TODO
         if self.hp <= 0:
+            print('killed')
             self.kill()
-
-        self.find_path_to_player()
-        self.movement()
+        self.do_damage()
 
         # animation
         if self.type == 'morph':
@@ -103,8 +111,8 @@ class Enemy(pg.sprite.Sprite):
                 self.frame += 1
             else:
                 self.frame -= 30
-        if self.type == 'jugger':
-            self.image = Enemy.JUGGERNAUT[self.frame // 10]
+        if self.type == 'blood_seeker':
+            self.image = Enemy.BS[self.frame // 10]
             if self.frame < 19:
                 self.frame += 1
             else:
@@ -120,6 +128,14 @@ class Enemy(pg.sprite.Sprite):
 
     def get_damage(self, dmg):
         self.hp -= dmg
+
+    def do_damage(self):
+        if self.type == 'morph':
+            b = Bullet((self.rect.centerx + camera.pos[0], self.rect.centery + camera.pos[1]),
+                       (player.rect.centerx + camera.pos[0], player.rect.centery + camera.pos[1]), 'morph',
+                       bullets_group)
+            b.rect.x -= camera.pos[0]
+            b.rect.y -= camera.pos[1]
 
 
 class SpriteSheet:
@@ -153,6 +169,12 @@ class Player(pg.sprite.Sprite):
         self.rect = self.image.get_rect().move(pos)
         self.vel = (0, 0)
         self.frame = 1
+        self.hp = 100
+
+    def update(self):
+        if self.hp <= 0:
+            self.kill()
+        self.movement()
 
     def movement(self):
         self.rect = self.rect.move(self.vel)
@@ -176,6 +198,9 @@ class Player(pg.sprite.Sprite):
                    bullets_group)
         b.rect.x -= camera.pos[0]
         b.rect.y -= camera.pos[1]
+
+    def get_damage(self, dmg):
+        self.hp -= dmg
 
 
 class Tile(pg.sprite.Sprite):
@@ -245,7 +270,7 @@ class Level:
                         self.enemies.append(((x * Tile.size, y * Tile.size), 'morph'))
                     if symbol == '-':
                         Tile('floor1', (x, y), self.tile_group)
-                        self.enemies.append(((x * Tile.size, y * Tile.size), 'jugger'))
+                        self.enemies.append(((x * Tile.size, y * Tile.size), 'blood_seeker'))
 
     def get_tiles(self):
         return self.tile_group
@@ -302,8 +327,8 @@ def main_menu(surface, size):
                     pass
 
     buttons_group = pg.sprite.Group()
-    change = Button((215, 310), 'change', buttons_group)
-    start = Button((215, 435), 'start', buttons_group)
+    change_char = Button((215, 310), 'change', buttons_group)
+    start_game = Button((215, 435), 'start', buttons_group)
 
     while True:
         for event in pg.event.get():
@@ -376,7 +401,7 @@ while running:
             if event.key == pg.K_d:
                 player.update_vel(-7, 0)
 
-    player.movement()
+    player.update()
     bullets_group.update(dt)
     enemies_group.update(dt)
     level.draw(screen)
