@@ -4,6 +4,7 @@ import pygame as pg
 import sys
 import pytweening
 
+
 DISPLAY_SIZE = (1240, 720)
 pytweening.linear(1.0)
 pytweening.easeInQuad(1.0)
