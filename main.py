@@ -27,7 +27,6 @@ class Bullet(pg.sprite.Sprite):
         self.target = target
         self.rect = self.image.get_rect().move(self.pos)
         self.vel = self.calc_vel()
-        self.image = pg.transform.rotate(self.image, (-math.atan(self.target[0] - self.pos[0] / self.target[1] - self.pos[1]) * 180) / math.pi)
 
     def calc_vel(self):
         d = (self.target[0] - self.start_pos[0], self.target[1] - self.start_pos[1])
@@ -91,7 +90,7 @@ class Enemy(pg.sprite.Sprite):
         self.vel = (0, 0)
         self.time_passed = 0
         self.frame = 0
-        self.fps = 1
+        self.fps = 4
         self.dps = 0.3
 
     def calc_vel(self, target):
@@ -107,30 +106,34 @@ class Enemy(pg.sprite.Sprite):
         self.time_passed += dt
         if self.time_passed >= 1 / self.dps:
             self.do_damage()
-            self.time_passed = 0
+        self.frame += self.time_passed / (1 / self.fps)
+        self.time_passed = 0
+
         if self.hp <= 0:
             print('killed')
             self.kill()
-        #self.do_damage()
 
-        # animation
         if self.type == 'morph':
-            self.image = Enemy.MORPHLING[self.frame // 10]
-            if self.frame < 39:
-                self.frame += 1
-            else:
-                self.frame -= 39
+
+            # animation
+            if self.frame >= 4:
+                self.frame -= 4
+            self.image = Enemy.MORPHLING[int(self.frame)]
         if self.type == 'blood_seeker':
-            self.image = Enemy.BS[self.frame // 10]
-            if self.frame < 19:
-                self.frame += 1
-            else:
-                self.frame -= 19
+            # self.find_path_to_player()
+            # self.movement()
+
+
+            # animation
+            if self.frame >= 4:
+                self.frame -= 4
+            self.image = Enemy.BS[int(self.frame)]
 
     def movement(self):
         for tile in pg.sprite.spritecollide(self, level.get_tiles(), False):
             if tile.type == 'wall':
-                self.rect = self.rect.move(-self.vel[0], -self.vel[1])
+                self.pos = (self.pos[0] - self.vel[0], self.pos[1] - self.vel[1])
+                self.rect.move(self.pos)
 
         self.pos = (self.pos[0] + self.vel[0], self.pos[1] + self.vel[1])
         self.rect.move(self.pos)
@@ -179,6 +182,8 @@ class Player(pg.sprite.Sprite):
         self.vel = (0, 0)
         self.frame = 1
         self.hp = 100
+        self.time_passed = 0
+        self.fps = 8
 
     def update(self):
         if self.hp <= 0:
@@ -191,12 +196,15 @@ class Player(pg.sprite.Sprite):
             if tile.type == 'wall':
                 self.rect = self.rect.move(-self.vel[0], -self.vel[1])
 
-        # animation
-        self.image = pg.image.load(Player.KANEKY[self.frame // 5])
-        if self.frame < 25:
-            self.frame += 1
-        else:
-            self.frame -= 25
+    def update(self, dt):
+        self.movement()
+
+        self.time_passed += dt
+        self.frame += self.time_passed / (1 / self.fps)
+        self.time_passed = 0
+        if self.frame >= 6:
+            self.frame -= 6
+        self.image = pg.image.load(Player.KANEKY[int(self.frame)])
 
     def update_vel(self, x, y):
         self.vel = (self.vel[0] + x, self.vel[1] + y)
@@ -370,7 +378,7 @@ if level.enemies:
         Enemy(*enemy_pos, enemies_group)
 
 while(1):
-    print("FPS:", int(clock.get_fps()))
+    # print("FPS:", int(clock.get_fps()))
     dt = clock.tick() / 1000
     screen.fill('black')
     for tile in level.tile_group:
@@ -411,7 +419,7 @@ while(1):
             if event.key == pg.K_d:
                 player.update_vel(-7, 0)
 
-    player.update()
+    player.update(dt)
     bullets_group.update(dt)
     enemies_group.update(dt)
     level.draw(screen)
