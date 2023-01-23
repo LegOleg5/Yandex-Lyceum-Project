@@ -8,8 +8,6 @@ DISPLAY_SIZE = (1240, 720)
 pytweening.linear(1.0)
 pytweening.easeInQuad(1.0)
 pytweening.easeInOutSine(1.0)
-print((math.atan(12 / 5) * 180) / math.pi)
-
 
 class Bullet(pg.sprite.Sprite):
 
@@ -33,7 +31,10 @@ class Bullet(pg.sprite.Sprite):
         d = (self.target[0] - self.start_pos[0], self.target[1] - self.start_pos[1])
         len_d = math.sqrt(d[0] ** 2 + d[1] ** 2)
         dn = (d[0] / len_d, d[1] / len_d)
-        return dn[0] * 128 * 10, dn[1] * 128 * 10
+        if self.type == 'player':
+            return dn[0] * 128 * 10, dn[1] * 128 * 10
+        if self.type == 'morph':
+            return dn[0] * 64 * 10, dn[1] * 64 * 10
 
     def update(self, dt):
         for tile in pg.sprite.spritecollide(self, level.get_tiles(), False):
@@ -86,7 +87,10 @@ class Enemy(pg.sprite.Sprite):
         self.pos = pos
         self.rect = self.image.get_rect().move(pos)
         self.vel = (0, 0)
+        self.time_passed = 0
         self.frame = 0
+        self.fps = 1
+        self.dps = 0.3
 
     def calc_vel(self, target):
         pass
@@ -98,11 +102,14 @@ class Enemy(pg.sprite.Sprite):
         self.vel = dn[0] * 128 * 10, dn[1] * 128 * 10
 
     def update(self, dt):
-        # TODO
+        self.time_passed += dt
+        if self.time_passed >= 1 / self.dps:
+            self.do_damage()
+            self.time_passed = 0
         if self.hp <= 0:
             print('killed')
             self.kill()
-        self.do_damage()
+        #self.do_damage()
 
         # animation
         if self.type == 'morph':
@@ -110,7 +117,7 @@ class Enemy(pg.sprite.Sprite):
             if self.frame < 39:
                 self.frame += 1
             else:
-                self.frame -= 30
+                self.frame -= 39
         if self.type == 'blood_seeker':
             self.image = Enemy.BS[self.frame // 10]
             if self.frame < 19:
@@ -132,8 +139,8 @@ class Enemy(pg.sprite.Sprite):
     def do_damage(self):
         if self.type == 'morph':
             b = Bullet((self.rect.centerx + camera.pos[0], self.rect.centery + camera.pos[1]),
-                       (player.rect.centerx + camera.pos[0], player.rect.centery + camera.pos[1]), 'morph',
-                       bullets_group)
+                       (player.rect.centerx + camera.pos[0], player.rect.centery + camera.pos[1]),
+                       'morph', bullets_group)
             b.rect.x -= camera.pos[0]
             b.rect.y -= camera.pos[1]
 
@@ -345,6 +352,7 @@ def main_menu(surface, size):
 lvl_name = input()
 
 pg.init()
+pg.event.set_allowed([pg.QUIT, pg.KEYDOWN, pg.KEYUP, pg.MOUSEBUTTONDOWN])
 pg.display.set_caption('Перемещение героя. Камера')
 screen = pg.display.set_mode(DISPLAY_SIZE)
 clock = pg.time.Clock()
@@ -358,10 +366,10 @@ camera = Camera()
 if level.enemies:
     for enemy_pos in level.enemies:
         Enemy(*enemy_pos, enemies_group)
-running = True
 
-while running:
-    dt = clock.tick(144) / 1000
+while(1):
+    print("FPS:", int(clock.get_fps()))
+    dt = clock.tick() / 1000
     screen.fill('black')
     for tile in level.tile_group:
         camera.apply(tile)
@@ -375,7 +383,7 @@ while running:
 
     for event in pg.event.get():
         if event.type == pg.QUIT:
-            running = False
+            terminate()
 
         if event.type == pg.MOUSEBUTTONDOWN:
             # print((player.rect.centerx + camera.pos[0], player.rect.centery + camera.pos[1]),
