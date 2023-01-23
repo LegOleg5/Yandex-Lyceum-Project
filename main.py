@@ -9,6 +9,7 @@ pytweening.linear(1.0)
 pytweening.easeInQuad(1.0)
 pytweening.easeInOutSine(1.0)
 
+
 class Bullet(pg.sprite.Sprite):
 
     def __init__(self, start_pos, target, type, *groups):
