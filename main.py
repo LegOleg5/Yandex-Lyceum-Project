@@ -4,11 +4,38 @@ import pygame as pg
 import sys
 import pytweening
 
-
 DISPLAY_SIZE = (1240, 720)
 pytweening.linear(1.0)
 pytweening.easeInQuad(1.0)
 pytweening.easeInOutSine(1.0)
+
+
+class Button(pg.sprite.Sprite):
+    change_char_img = pg.image.load('data/img/Menu/ButtonChange.png')
+    start_game_img = pg.image.load('data/img/Menu/ButtonStart.png')
+    leon = pg.image.load('data/img/LEON_Button.png')
+    kaneky = pg.image.load('data/img/KANEKY_Button.png')
+
+    def __init__(self, pos, type, *groups):
+        super().__init__(*groups)
+        self.type = type
+        if self.type == 'start':
+            self.image = Button.start_game_img
+        elif self.type == 'change':
+            self.image = Button.change_char_img
+        elif self.type == 'kaneky':
+            self.image = Button.kaneky
+        elif self.type == 'leon':
+            self.image = Button.leon
+
+        self.rect = self.image.get_rect().move(pos)
+
+    def update(self, pos):
+        if self.rect.collidepoint(pos):
+            if self.type == 'start':
+                return
+            else:
+                pass
 
 
 class Bullet(pg.sprite.Sprite):
@@ -17,7 +44,7 @@ class Bullet(pg.sprite.Sprite):
         super().__init__(*groups)
         self.type = type
         if self.type == 'player':
-            self.image = pg.image.load('data/img/attack1_kaneky.png')
+            self.image = pg.image.load('data/img/Kaneky_attack.png')
             self.damage = 15
         if self.type == 'morph':
             self.image = pg.image.load('data/img/attack1_morfling.png')
@@ -88,7 +115,8 @@ class Enemy(pg.sprite.Sprite):
         self.pos = pos
         self.rect = self.image.get_rect().move(pos)
         self.vel = (0, 0)
-        self.time_passed = 0
+        self.time_counter_1 = 0
+        self.time_counter_2 = 0
         self.frame = 0
         self.fps = 4
         self.dps = 0.3
@@ -100,14 +128,16 @@ class Enemy(pg.sprite.Sprite):
         d = (player.pos[0] - self.pos[0], player.pos[1] - self.pos[1])
         len_d = math.sqrt(d[0] ** 2 + d[1] ** 2)
         dn = (d[0] / len_d, d[1] / len_d)
-        self.vel = dn[0] * 128 * 10, dn[1] * 128 * 10
+        self.vel = dn[0] * 32 * 10, dn[1] * 32 * 10
 
     def update(self, dt):
-        self.time_passed += dt
-        if self.time_passed >= 1 / self.dps:
+        self.time_counter_1 += dt
+        self.time_counter_2 += dt
+        if self.time_counter_1 >= 1 / self.dps:
             self.do_damage()
-        self.frame += self.time_passed / (1 / self.fps)
-        self.time_passed = 0
+            self.time_counter_1 = 0
+        self.frame += self.time_counter_2 / (1 / self.fps)
+        self.time_counter_2 = 0
 
         if self.hp <= 0:
             print('killed')
@@ -120,9 +150,11 @@ class Enemy(pg.sprite.Sprite):
                 self.frame -= 4
             self.image = Enemy.MORPHLING[int(self.frame)]
         if self.type == 'blood_seeker':
-            # self.find_path_to_player()
-            # self.movement()
-
+            if abs(player.pos[0] - self.pos[0]) < 640 and abs(player.pos[1] - self.pos[1]) < 640:
+                self.find_path_to_player()
+                self.movement()
+                self.pos = (self.pos[0] + self.vel[0], self.pos[1] + self.vel[1])
+                self.rect.move(self.pos)
 
             # animation
             if self.frame >= 4:
@@ -143,11 +175,15 @@ class Enemy(pg.sprite.Sprite):
 
     def do_damage(self):
         if self.type == 'morph':
-            b = Bullet((self.rect.centerx + camera.pos[0], self.rect.centery + camera.pos[1]),
-                       (player.rect.centerx + camera.pos[0], player.rect.centery + camera.pos[1]),
-                       'morph', bullets_group)
-            b.rect.x -= camera.pos[0]
-            b.rect.y -= camera.pos[1]
+            if abs(player.pos[0] - self.pos[0]) < 640 and abs(player.pos[1] - self.pos[1]) < 640:
+                b = Bullet((self.rect.centerx + camera.pos[0], self.rect.centery + camera.pos[1]),
+                           (player.rect.centerx + camera.pos[0], player.rect.centery + camera.pos[1]),
+                           'morph', bullets_group)
+                b.rect.x -= camera.pos[0]
+                b.rect.y -= camera.pos[1]
+        if self.type == 'blood_seeker':
+            if pg.sprite.spritecollide(self, player_group, False):
+                player.get_damage(30)
 
 
 class SpriteSheet:
@@ -185,18 +221,18 @@ class Player(pg.sprite.Sprite):
         self.time_passed = 0
         self.fps = 8
 
-    def update(self):
-        if self.hp <= 0:
-            self.kill()
-        self.movement()
-
     def movement(self):
         self.rect = self.rect.move(self.vel)
+        self.pos = (self.pos[0] + self.vel[0], self.pos[1] + self.vel[1])
         for tile in pg.sprite.spritecollide(self, level.get_tiles(), False):
             if tile.type == 'wall':
                 self.rect = self.rect.move(-self.vel[0], -self.vel[1])
+                self.pos = (self.pos[0] - self.vel[0], self.pos[1] - self.vel[1])
 
     def update(self, dt):
+        if self.hp <= 0:
+            self.kill()
+            print('game over')
         self.movement()
 
         self.time_passed += dt
@@ -303,7 +339,7 @@ class Camera:
     def __init__(self):
         self.dx = 0
         self.dy = 0
-        self.pos =(0, 0)
+        self.pos = (0, 0)
 
     def apply(self, obj):
         obj.rect.x += self.dx
@@ -320,28 +356,16 @@ def terminate():
     sys.exit()
 
 
-def main_menu(surface, size):
+def change_character_menu(surface, size):
     screen.blit(pg.image.load('data/img/Menu/Menu2.png'), (0, 0))
 
-    class Button(pg.sprite.Sprite):
-        change_char_img = pg.image.load('data/img/Menu/ButtonChange.png')
-        start_game_img = pg.image.load('data/img/Menu/ButtonStart.png')
+    buttons_group = pg.sprite.Group()
+    kaneky = Button((658, 292), 'kaneky', buttons_group)
+    leon = Button((310, 282), 'leon', buttons_group)
 
-        def __init__(self, pos, type, *groups):
-            super().__init__(*groups)
-            self.type = type
-            if self.type == 'start':
-                self.image = Button.start_game_img
-            elif self.type == 'change':
-                self.image = Button.change_char_img
-            self.rect = self.image.get_rect().move(pos)
 
-        def update(self, pos):
-            if self.rect.collidepoint(pos):
-                if self.type == 'start':
-                    return
-                else:
-                    pass
+def main_menu(surface, size):
+    screen.blit(pg.image.load('data/img/Menu/Menu2.png'), (0, 0))
 
     buttons_group = pg.sprite.Group()
     change_char = Button((215, 310), 'change', buttons_group)
@@ -377,8 +401,8 @@ if level.enemies:
     for enemy_pos in level.enemies:
         Enemy(*enemy_pos, enemies_group)
 
-while(1):
-    # print("FPS:", int(clock.get_fps()))
+while (1):
+    print("FPS:", int(clock.get_fps()))
     dt = clock.tick() / 1000
     screen.fill('black')
     for tile in level.tile_group:
@@ -386,7 +410,6 @@ while(1):
     for bullet in bullets_group:
         camera.apply(bullet)
     for enemy in enemies_group:
-        enemy.movement()
         camera.apply(enemy)
     camera.apply(player)
     camera.update(player)
@@ -419,7 +442,7 @@ while(1):
             if event.key == pg.K_d:
                 player.update_vel(-7, 0)
 
-    player.update(dt)
+    player_group.update(dt)
     bullets_group.update(dt)
     enemies_group.update(dt)
     level.draw(screen)
