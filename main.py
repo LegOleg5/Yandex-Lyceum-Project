@@ -3,6 +3,7 @@ import math
 import pygame as pg
 import sys
 import pytweening
+from lvl_generation import lvl_generate
 
 DISPLAY_SIZE = (1240, 720)
 pytweening.linear(1.0)
@@ -323,6 +324,12 @@ class Level:
                         self.enemies.append(((x * Tile.size, y * Tile.size), 'morph'))
                     if symbol == '-':
                         Tile('floor1', (x, y), self.tile_group)
+                        self.enemies.append(((x * Tile.size, y * Tile.size), 'blood_seeker'))
+                    if symbol == 'b':
+                        Tile('floor2', (x, y), self.tile_group)
+                        self.enemies.append(((x * Tile.size, y * Tile.size), 'blood_seeker'))
+                    if symbol == 'l':
+                        Tile('floor3', (x, y), self.tile_group)
                         self.enemies.append(((x * Tile.size, y * Tile.size), 'blood_seeker'))
 
     def get_tiles(self):
