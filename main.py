@@ -123,12 +123,6 @@ class Enemy(pg.sprite.Sprite):
         self.fps = 4
         self.dps = 0.3
 
-    def calc_vel(self):
-        d = (player.pos[0] - self.pos[0], player.pos[1] - self.pos[1])
-        len_d = math.sqrt(d[0] ** 2 + d[1] ** 2)
-        dn = (d[0] / len_d, d[1] / len_d)
-        self.vel = dn[0] * 32 * 10, dn[1] * 32 * 10
-
     def update(self, dt):
         self.time_counter_1 += dt
         self.time_counter_2 += dt
@@ -149,25 +143,11 @@ class Enemy(pg.sprite.Sprite):
                 self.frame -= 4
             self.image = Enemy.MORPHLING[int(self.frame)]
         if self.type == 'blood_seeker':
-            # if abs(player.pos[0] - self.pos[0]) < 640 and abs(player.pos[1] - self.pos[1]) < 640:
-            self.calc_vel()
-            self.movement()
-                # self.pos = (self.pos[0] + self.vel[0], self.pos[1] + self.vel[1])
-                # self.rect.move(self.pos)
 
             # animation
             if self.frame >= 4:
                 self.frame -= 4
             self.image = Enemy.BS[int(self.frame)]
-
-    def movement(self):
-        # for tile in pg.sprite.spritecollide(self, level.get_tiles(), False):
-        #     if tile.type == 'wall':
-        #         self.pos = (self.pos[0] - self.vel[0], self.pos[1] - self.vel[1])
-        #         self.rect.move(self.pos)
-
-        self.pos = (self.pos[0] + self.vel[0], self.pos[1] + self.vel[1])
-        self.rect.move(self.pos)
 
     def get_damage(self, dmg):
         self.hp -= dmg
