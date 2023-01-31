@@ -165,22 +165,6 @@ class Enemy(pg.sprite.Sprite):
                 player.get_damage(30)
 
 
-class SpriteSheet:
-
-    def __init__(self, surface, width_frames, height_frames):
-        self.surface = surface
-        self.current_frame = None
-        self.frame_size = (surface.get_width() // width_frames,
-                           surface.get_height() // height_frames)
-        self.wf = width_frames
-        self.hf = height_frames
-
-    def get_frame(self, index):
-        x = index % self.wf * self.frame_size[0]
-        y = index % self.hf * self.frame_size[1]
-        return self.surface.subsurface(pg.Rect(x, y, self.frame_size[0], self.frame_size[1]))
-
-
 class Player(pg.sprite.Sprite):
     KANEKY = ['data/img/heroes/Kaneky/Kagune1.png',
               'data/img/heroes/Kaneky/Kagune2.png',
