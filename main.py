@@ -356,7 +356,7 @@ def main_menu(surface, size):
 
 pg.init()
 pg.event.set_allowed([pg.QUIT, pg.KEYDOWN, pg.KEYUP, pg.MOUSEBUTTONDOWN])
-pg.display.set_caption('Перемещение героя. Камера')
+pg.display.set_caption('Захватывающие приключения дед инсайда')
 screen = pg.display.set_mode(DISPLAY_SIZE)
 clock = pg.time.Clock()
 player_group = pg.sprite.Group()
