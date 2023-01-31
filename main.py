@@ -4,6 +4,7 @@ import pygame as pg
 import sys
 import pytweening
 from lvl_generation import lvl_generate
+lvl_generate('РАЗРАБЫДАУНЫ')
 
 DISPLAY_SIZE = (1240, 720)
 pytweening.linear(1.0)
@@ -48,7 +49,7 @@ class Bullet(pg.sprite.Sprite):
             self.image = pg.image.load('data/img/Kaneky_attack.png')
             self.damage = 15
         if self.type == 'morph':
-            self.image = pg.image.load('data/img/attack1_morfling.png')
+            self.image = pg.image.load('data/img/Morf_attack.png')
             self.damage = 20
         self.start_pos = start_pos
         self.pos = start_pos
@@ -122,10 +123,7 @@ class Enemy(pg.sprite.Sprite):
         self.fps = 4
         self.dps = 0.3
 
-    def calc_vel(self, target):
-        pass
-
-    def find_path_to_player(self):
+    def calc_vel(self):
         d = (player.pos[0] - self.pos[0], player.pos[1] - self.pos[1])
         len_d = math.sqrt(d[0] ** 2 + d[1] ** 2)
         dn = (d[0] / len_d, d[1] / len_d)
@@ -151,11 +149,11 @@ class Enemy(pg.sprite.Sprite):
                 self.frame -= 4
             self.image = Enemy.MORPHLING[int(self.frame)]
         if self.type == 'blood_seeker':
-            if abs(player.pos[0] - self.pos[0]) < 640 and abs(player.pos[1] - self.pos[1]) < 640:
-                self.find_path_to_player()
-                self.movement()
-                self.pos = (self.pos[0] + self.vel[0], self.pos[1] + self.vel[1])
-                self.rect.move(self.pos)
+            # if abs(player.pos[0] - self.pos[0]) < 640 and abs(player.pos[1] - self.pos[1]) < 640:
+            self.calc_vel()
+            self.movement()
+                # self.pos = (self.pos[0] + self.vel[0], self.pos[1] + self.vel[1])
+                # self.rect.move(self.pos)
 
             # animation
             if self.frame >= 4:
@@ -163,10 +161,10 @@ class Enemy(pg.sprite.Sprite):
             self.image = Enemy.BS[int(self.frame)]
 
     def movement(self):
-        for tile in pg.sprite.spritecollide(self, level.get_tiles(), False):
-            if tile.type == 'wall':
-                self.pos = (self.pos[0] - self.vel[0], self.pos[1] - self.vel[1])
-                self.rect.move(self.pos)
+        # for tile in pg.sprite.spritecollide(self, level.get_tiles(), False):
+        #     if tile.type == 'wall':
+        #         self.pos = (self.pos[0] - self.vel[0], self.pos[1] - self.vel[1])
+        #         self.rect.move(self.pos)
 
         self.pos = (self.pos[0] + self.vel[0], self.pos[1] + self.vel[1])
         self.rect.move(self.pos)
@@ -390,7 +388,7 @@ def main_menu(surface, size):
         buttons_group.draw(screen)
 
 
-lvl_name = input()
+
 
 pg.init()
 pg.event.set_allowed([pg.QUIT, pg.KEYDOWN, pg.KEYUP, pg.MOUSEBUTTONDOWN])
@@ -398,7 +396,7 @@ pg.display.set_caption('Перемещение героя. Камера')
 screen = pg.display.set_mode(DISPLAY_SIZE)
 clock = pg.time.Clock()
 player_group = pg.sprite.Group()
-level = Level(f'data/levels/{lvl_name}.txt')
+level = Level('lvl4')
 player = Player(level.spawn, player_group)
 bullets_group = pg.sprite.Group()
 enemies_group = pg.sprite.Group()
